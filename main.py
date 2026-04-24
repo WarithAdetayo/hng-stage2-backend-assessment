@@ -57,6 +57,14 @@ def get_profiles(
     page: int = Query(1, ge=1),
     limit: int = Query(10, ge=1, le=50),
 ):
+    # Validate pagination explicitly for clean error envelope
+    if page < 1 or limit < 1 or limit > 50:
+        return JSONResponse(
+            status_code=400,
+            content={"status": "error", "message": "Invalid query parameters"},
+            headers={"Access-Control-Allow-Origin": "*"},
+        )
+
     # Validate enums
     if gender and gender not in ("male", "female"):
         return JSONResponse(
@@ -112,11 +120,18 @@ def search_profiles(
             headers={"Access-Control-Allow-Origin": "*"},
         )
 
+    if page < 1 or limit < 1 or limit > 50:
+        return JSONResponse(
+            status_code=400,
+            content={"status": "error", "message": "Invalid query parameters"},
+            headers={"Access-Control-Allow-Origin": "*"},
+        )
+
     filters = parse_natural_language(q.strip())
 
     if filters is None:
         return JSONResponse(
-            status_code=200,
+            status_code=400,
             content={"status": "error", "message": "Unable to interpret query"},
             headers={"Access-Control-Allow-Origin": "*"},
         )
